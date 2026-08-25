@@ -1,37 +1,61 @@
-# MinecraftSniper服务器管理面板
+# MinecraftSniper 服务器管理面板
 
-#### 介绍
-一个基于 Node.js 的轻量级服务器管理面板，支持文件管理、交互式终端、性能监控，适合个人或小团队服务器运维。
-
-#### 软件架构
-软件架构说明
+> ⚠️ **项目状态：EOL（End Of Life）**  
+> 本版本为项目最终版本，后续将不再更新维护。功能完整稳定，可继续使用。
 
 
-#### 安装教程
+## 简介
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 使用说明
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+`MinecraftSniper 服务器管理面板` 是一个基于 Node.js 的轻量级 Web 服务器管理工具。  
+它专为个人或小团队服务器运维设计，提供直观的图形化操作界面，支持文件管理、交互式终端和性能监控等核心功能。
 
 
-#### 特技
+## 功能概览
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+- 🔐 **私钥登录认证** — RSA 2048 位私钥验证，支持在线重置密钥
+- 📊 **性能监控面板** — 实时显示 CPU、内存、温度、磁盘、网络状态
+- 💾 **磁盘健康检测** — 支持 S.M.A.R.T. 检测（Linux），智能识别虚拟化环境
+- 📁 **文件管理器** — 从根目录浏览，支持上传、下载、删除，支持大文件流式上传
+- 🖥️ **交互式终端** — xterm.js + WebSocket + PTY，支持 `nano`、`vim`、`top` 等命令
+- 🌓 **深色/浅色主题** — 一键切换，适应不同使用环境
+- 📱 **移动端适配** — 响应式设计，手机访问同样友好
+
+
+## 技术栈
+
+| 层级 | 技术 |
+|------|------|
+| 后端 | Node.js + Express + WebSocket |
+| 终端 | node-pty + xterm.js |
+| 文件上传 | multer (diskStorage) |
+| 认证 | RSA 私钥 (JWT) |
+| 包管理 | pnpm |
+
+
+## 系统要求
+
+- **Node.js**：v20 或更高版本
+- **包管理器**：pnpm（推荐）
+- **操作系统**：Linux / Windows / macOS（终端功能在 Linux 下体验最佳）
+
+> ⚠️ 请务必注意以下安全事项：
+
+1. **不要将管理端口暴露到公网**，建议通过 VPN 或内网访问
+2. **私钥丢失后无法找回**，请妥善保管并备份
+3. **请勿卸载 SSH 工具**，否则私钥丢失后将无法恢复服务器访问
+4. **生成新密钥对后，旧私钥立即失效**
+
+
+## 常见问题
+
+HTTPS 证书怎么配置？
+在 `adminconfig.json` 中设置 `https.enabled: "auto"`，并将证书放入 `sslkey/` 目录即可自动启用。
+
+端口被占用怎么办？
+修改 `adminconfig.json` 中的 `adminPort` 字段即可。
+
+---
+## 版权信息
+
+© 2026 林鋆成 All Rights Reserved.
+
