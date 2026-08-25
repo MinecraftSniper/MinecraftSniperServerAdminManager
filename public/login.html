@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>管理员登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #0a0a0f;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 0;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            padding: 48px 40px 40px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .login-container .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .login-container h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .login-container .sub {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 20px;
+        }
+
+        /* ============================================================
+           安全警告（完整版）
+           ============================================================ */
+        .security-warning {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: rgba(255, 200, 50, 0.06);
+            border: 1.5px solid rgba(255, 200, 50, 0.25);
+            box-shadow: 0 0 30px rgba(255, 200, 50, 0.04);
+            text-align: left;
+        }
+
+        .security-warning-icon {
+            font-size: 22px;
+            line-height: 1.2;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .security-warning-content {
+            flex: 1;
+        }
+
+        .security-warning-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 200, 50, 0.9);
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .security-warning-text {
+            font-size: 12px;
+            color: rgba(255, 200, 50, 0.5);
+            line-height: 1.6;
+            margin-top: 2px;
+        }
+
+        .security-warning-text strong {
+            color: rgba(255, 200, 50, 0.75);
+            font-weight: 600;
+        }
+
+        .security-warning .warning-divider {
+            height: 1px;
+            background: rgba(255, 200, 50, 0.12);
+            margin: 6px 0 6px 0;
+        }
+
+        .security-warning .key-warning {
+            color: rgba(255, 200, 50, 0.6);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .security-warning .key-warning strong {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        /* ============================================================
+           密钥状态
+           ============================================================ */
+        .login-container .key-status {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .login-container .key-status .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .login-container .key-status .status-dot.ok { background: #6ee7b7; }
+        .login-container .key-status .status-dot.no { background: #f87171; }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 32px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .upload-area.dragover {
+            border-color: rgba(100, 180, 255, 0.5);
+            background: rgba(100, 180, 255, 0.06);
+        }
+
+        .upload-area .upload-icon {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 8px;
+            opacity: 0.6;
+        }
+
+        .upload-area .upload-text {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        .upload-area .upload-text strong {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+
+        .upload-area .file-name {
+            margin-top: 10px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            word-break: break-all;
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn-login {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #0a0a0f;
+            background: linear-gradient(135deg, #6c8cff, #a78bfa);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .btn-login.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(108, 140, 255, 0.3);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .btn-reset-key {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            border-radius: 40px;
+            background: rgba(255, 215, 0, 0.06);
+            color: rgba(255, 215, 0, 0.7);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-reset-key:hover {
+            background: rgba(255, 215, 0, 0.12);
+            border-color: rgba(255, 215, 0, 0.4);
+            color: rgba(255, 215, 0, 0.9);
+        }
+
+        .btn-reset-key:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .reset-area {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 215, 0, 0.12);
+            text-align: left;
+        }
+
+        .reset-area.show {
+            display: block;
+        }
+
+        .reset-area .reset-hint {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .reset-area .reset-hint strong {
+            color: rgba(255, 215, 0, 0.8);
+        }
+
+        .reset-area .upload-reset-area {
+            border: 2px dashed rgba(255, 215, 0, 0.12);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 215, 0, 0.02);
+            position: relative;
+            text-align: center;
+        }
+
+        .reset-area .upload-reset-area:hover {
+            border-color: rgba(255, 215, 0, 0.25);
+            background: rgba(255, 215, 0, 0.04);
+        }
+
+        .reset-area .upload-reset-area .file-name {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .reset-area .upload-reset-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .reset-area .btn-confirm-reset {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #0a0a0f;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .reset-area .btn-confirm-reset:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);
+        }
+
+        .reset-area .btn-confirm-reset:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .reset-area .reset-status {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .reset-area .reset-status.error {
+            color: #f87171;
+        }
+
+        .reset-area .reset-status.success {
+            color: #6ee7b7;
+        }
+
+        .status {
+            margin-top: 16px;
+            font-size: 14px;
+            min-height: 24px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .status.error {
+            color: #f87171;
+        }
+
+        .status.success {
+            color: #6ee7b7;
+        }
+
+        .bottom-links {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+
+        .bottom-links a {
+            color: rgba(255, 255, 255, 0.35);
+            text-decoration: none;
+            transition: color 0.2s;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .bottom-links a:hover {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 12px auto 0;
+        }
+        .spinner.show {
+            display: block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: 24px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.12);
+            letter-spacing: 0.3px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 32px 24px 28px;
+                margin: 16px;
+            }
+            .upload-area {
+                padding: 24px 16px;
+            }
+            .bottom-links {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .security-warning {
+                padding: 10px 14px;
+                gap: 10px;
+            }
+            .security-warning-icon {
+                font-size: 18px;
+            }
+            .security-warning-title {
+                font-size: 12px;
+            }
+            .security-warning-text {
+                font-size: 11px;
+            }
+            .security-warning .key-warning {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <span class="icon">🔑</span>
+        <h1>管理员验证</h1>
+        <p class="sub" id="subText">请上传您的私钥文件进行身份验证</p>
+
+        <!-- ============================================================
+             安全警告（完整版）
+             ============================================================ -->
+        <div class="security-warning">
+            <div class="security-warning-icon">⚠️</div>
+            <div class="security-warning-content">
+                <div class="security-warning-title">安全警告</div>
+
+                <!-- 第一条：端口暴露 -->
+                <div class="security-warning-text">
+                    请不要将管理界面的端口直接暴露到公网！建议通过虚拟专用网络或内网访问。
+                </div>
+
+                <div class="warning-divider"></div>
+
+                <!-- 第二条：私钥丢失 + SSH 工具保留（合并） -->
+                <div class="key-warning">
+                    <strong>🔐 私钥丢失后无法找回！</strong><br>
+                    请妥善保管您的私钥文件，建议备份到安全位置（如密码管理器或加密U盘）。<br>
+                    一旦丢失，您将无法登录管理面板，且无法通过任何方式找回。
+                </div>
+
+                <div class="warning-divider"></div>
+
+                <!-- 第三条：SSH 工具不要卸载 -->
+                <div class="key-warning">
+                    <strong>🖥️ 请勿卸载 SSH 工具！</strong><br>
+                    本面板依赖 SSH 工具（如 OpenSSH）进行远程连接管理。<br>
+                    私钥丢失后，您将无法登录管理面板，也就无法删除或替换面板中的公钥文件。<br>
+                    如果 SSH 工具也被卸载，将彻底丧失恢复能力。
+                </div>
+            </div>
+        </div>
+
+        <!-- 密钥状态 -->
+        <div class="key-status" id="keyStatusDisplay">
+            <span class="status-dot no" id="statusDot"></span>
+            <span id="statusText">检查中...</span>
+        </div>
+
+        <!-- 登录上传区域 -->
+        <div class="upload-area" id="uploadArea">
+            <span class="upload-icon">📄</span>
+            <div class="upload-text">
+                点击或拖拽上传 <strong>私钥文件</strong>
+            </div>
+            <div class="file-name" id="fileName"></div>
+            <input type="file" id="fileInput" accept=".pem,.key,.txt">
+        </div>
+
+        <button class="btn-login" id="loginBtn">验证私钥并登录</button>
+
+        <div class="status" id="status">📌 请上传您的私钥文件</div>
+        <div class="spinner" id="spinner"></div>
+
+        <!-- 重置密钥入口 -->
+        <button class="btn-reset-key" id="resetKeyBtn">🔐 重置密钥</button>
+
+        <!-- 重置密钥表单（展开后显示） -->
+        <div class="reset-area" id="resetArea">
+            <div class="reset-hint" id="resetHint">
+                <strong>⚠️ 重置密钥将生成新的密钥对</strong><br>
+                旧私钥将立即失效。请上传旧私钥验证身份，或首次初始化直接生成。
+            </div>
+            <div class="upload-reset-area" id="uploadResetArea">
+                <span style="color:rgba(255,255,255,0.4);font-size:13px;">📎 上传旧私钥验证</span>
+                <div class="file-name" id="resetFileName">首次使用可直接生成</div>
+                <input type="file" id="resetFileInput" accept=".pem,.key,.txt">
+            </div>
+            <button class="btn-confirm-reset" id="confirmResetBtn">🔐 确认生成新密钥</button>
+            <div class="reset-status" id="resetStatus"></div>
+        </div>
+
+        <div class="footer">© 林鋆成 · 保留所有权利</div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 1. 加载后台背景配置
+        // ============================================================
+        async function loadAdminBackground() {
+            try {
+                const res = await fetch('/api/admin/config');
+                const data = await res.json();
+                if (data.background) {
+                    document.body.style.backgroundImage = `url(${data.background})`;
+                }
+            } catch (err) {
+                // 静默失败
+            }
+        }
+        loadAdminBackground();
+
+        // ============================================================
+        // 2. DOM 引用
+        // ============================================================
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileName = document.getElementById('fileName');
+        const loginBtn = document.getElementById('loginBtn');
+        const status = document.getElementById('status');
+        const spinner = document.getElementById('spinner');
+
+        const resetKeyBtn = document.getElementById('resetKeyBtn');
+        const resetArea = document.getElementById('resetArea');
+        const resetFileInput = document.getElementById('resetFileInput');
+        const uploadResetArea = document.getElementById('uploadResetArea');
+        const resetFileName = document.getElementById('resetFileName');
+        const confirmResetBtn = document.getElementById('confirmResetBtn');
+        const resetStatus = document.getElementById('resetStatus');
+        const resetHint = document.getElementById('resetHint');
+
+        const keyStatusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+
+        let selectedFile = null;
+        let fileContent = null;
+        let resetFileContent = null;
+        let isKeyConfigured = false;
+
+        // ============================================================
+        // 3. 检查密钥状态
+        // ============================================================
+        async function checkKeyStatus() {
+            try {
+                const res = await fetch('/api/admin/key/status');
+                const data = await res.json();
+                isKeyConfigured = data.configured;
+                if (data.configured) {
+                    keyStatusText.textContent = '✅ 密钥已配置';
+                    statusDot.className = 'status-dot ok';
+                    resetHint.innerHTML = '<strong>⚠️ 重置密钥将生成新的密钥对</strong><br>旧私钥将立即失效。请上传旧私钥验证身份。';
+                } else {
+                    keyStatusText.textContent = '❌ 密钥未配置（首次使用）';
+                    statusDot.className = 'status-dot no';
+                    resetHint.innerHTML = '<strong>🔐 首次初始化</strong><br>直接生成新密钥对，无需验证旧私钥。';
+                }
+                return data;
+            } catch (err) {
+                keyStatusText.textContent = '❌ 获取状态失败';
+                statusDot.className = 'status-dot no';
+                return null;
+            }
+        }
+        checkKeyStatus();
+
+        // ============================================================
+        // 4. 登录文件选择
+        // ============================================================
+        function handleFile(file) {
+            if (!file) {
+                resetUpload();
+                return;
+            }
+
+            if (file.size > 50 * 1024) {
+                status.textContent = '❌ 私钥文件过大（最大 50KB）';
+                status.className = 'status error';
+                resetUpload();
+                return;
+            }
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['pem', 'key', 'txt'].includes(ext)) {
+                status.textContent = '❌ 不支持的文件格式，请使用 .pem / .key / .txt';
+                status.className = 'status error';
+                resetUpload();
+                return;
+            }
+
+            selectedFile = file;
+            fileName.textContent = `📎 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            loginBtn.classList.add('active');
+            status.textContent = '✅ 私钥已选择，点击验证';
+            status.className = 'status success';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fileContent = e.target.result;
+            };
+            reader.onerror = function() {
+                status.textContent = '❌ 读取文件失败，请重试';
+                status.className = 'status error';
+                resetUpload();
+            };
+            reader.readAsText(file);
+        }
+
+        function resetUpload() {
+            selectedFile = null;
+            fileContent = null;
+            fileName.textContent = '';
+            loginBtn.classList.remove('active');
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files.length > 0) {
+                handleFile(this.files[0]);
+            }
+        });
+
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                handleFile(files[0]);
+                const dt = new DataTransfer();
+                dt.items.add(files[0]);
+                fileInput.files = dt.files;
+            }
+        });
+
+        uploadArea.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                fileInput.click();
+            }
+        });
+
+        // ============================================================
+        // 5. 登录验证
+        // ============================================================
+        loginBtn.addEventListener('click', async function() {
+            if (!fileContent) {
+                status.textContent = '❌ 请先选择私钥文件';
+                status.className = 'status error';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = '';
+            spinner.classList.add('show');
+            status.textContent = '⏳ 验证中...';
+            status.className = 'status';
+
+            try {
+                const response = await fetch('/api/admin/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ privateKey: fileContent.trim() })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.setItem('admin_token', result.token);
+                    status.textContent = '✅ 验证成功，正在跳转...';
+                    status.className = 'status success';
+                    setTimeout(() => {
+                        window.location.href = '/admin.html';
+                    }, 500);
+                } else {
+                    status.textContent = '❌ ' + (result.message || '私钥验证失败');
+                    status.className = 'status error';
+                    resetUpload();
+                    fileInput.value = '';
+                }
+            } catch (err) {
+                status.textContent = '❌ 网络请求失败: ' + err.message;
+                status.className = 'status error';
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = '验证私钥并登录';
+                spinner.classList.remove('show');
+            }
+        });
+
+        // ============================================================
+        // 6. 重置密钥（在登录页直接完成）
+        // ============================================================
+        let resetFile = null;
+
+        // 切换重置区域显示
+        resetKeyBtn.addEventListener('click', function() {
+            const isOpen = resetArea.classList.contains('show');
+            if (isOpen) {
+                resetArea.classList.remove('show');
+                this.textContent = '🔐 重置密钥';
+            } else {
+                resetArea.classList.add('show');
+                this.textContent = '✖ 关闭重置';
+                resetStatus.textContent = '';
+                resetStatus.className = 'reset-status';
+                checkKeyStatus();
+            }
+        });
+
+        // 重置密钥的文件上传
+        uploadResetArea.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                resetFileInput.click();
+            }
+        });
+
+        resetFileInput.addEventListener('change', function(e) {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                if (file.size > 50 * 1024) {
+                    resetStatus.textContent = '❌ 文件过大（最大 50KB）';
+                    resetStatus.className = 'reset-status error';
+                    this.value = '';
+                    return;
+                }
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!['pem', 'key', 'txt'].includes(ext)) {
+                    resetStatus.textContent = '❌ 不支持的文件格式';
+                    resetStatus.className = 'reset-status error';
+                    this.value = '';
+                    return;
+                }
+                resetFile = file;
+                resetFileName.textContent = `📎 ${file.name}`;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resetFileContent = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // 确认生成新密钥
+        confirmResetBtn.addEventListener('click', async function() {
+            if (!isKeyConfigured) {
+                if (!confirm('⚠️ 将生成新的密钥对，请确保下载并妥善保存私钥。\n\n继续吗？')) return;
+                await doResetKey(null);
+            } else {
+                if (!resetFileContent) {
+                    resetStatus.textContent = '⚠️ 请上传旧私钥进行身份验证';
+                    resetStatus.className = 'reset-status error';
+                    return;
+                }
+                if (!confirm('⚠️ 将生成新的密钥对，旧的私钥将立即失效。\n\n继续吗？')) return;
+                try {
+                    const verifyRes = await fetch('/api/admin/auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ privateKey: resetFileContent.trim() })
+                    });
+                    const verifyResult = await verifyRes.json();
+                    if (!verifyResult.success) {
+                        resetStatus.textContent = '❌ 旧私钥验证失败，无法重置';
+                        resetStatus.className = 'reset-status error';
+                        return;
+                    }
+                    await doResetKey(verifyResult.token);
+                } catch (err) {
+                    resetStatus.textContent = '❌ 验证失败: ' + err.message;
+                    resetStatus.className = 'reset-status error';
+                }
+            }
+        });
+
+        async function doResetKey(token) {
+            confirmResetBtn.disabled = true;
+            confirmResetBtn.textContent = '⏳ 生成中...';
+            resetStatus.textContent = '';
+            resetStatus.className = 'reset-status';
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+
+                const res = await fetch('/api/admin/key/generate', {
+                    method: 'POST',
+                    headers: headers
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    const blob = new Blob([data.privateKey], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'admin_private_key.pem';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    resetStatus.textContent = '✅ 新密钥已生成并下载！请妥善保存私钥。';
+                    resetStatus.className = 'reset-status success';
+                    checkKeyStatus();
+                    resetFileInput.value = '';
+                    resetFileName.textContent = '首次使用可直接生成';
+                    resetFileContent = null;
+                } else {
+                    resetStatus.textContent = '❌ 生成失败: ' + (data.message || '未知错误');
+                    resetStatus.className = 'reset-status error';
+                }
+            } catch (err) {
+                resetStatus.textContent = '❌ 网络请求失败: ' + err.message;
+                resetStatus.className = 'reset-status error';
+            } finally {
+                confirmResetBtn.disabled = false;
+                confirmResetBtn.textContent = '🔐 确认生成新密钥';
+            }
+        }
+
+        // ============================================================
+        // 7. 键盘支持
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && loginBtn.classList.contains('active')) {
+                loginBtn.click();
+            }
+        });
+
+        // ============================================================
+        // 8. 检测是否已登录
+        // ============================================================
+        const token = localStorage.getItem('admin_token');
+        if (token) {
+            fetch('/api/admin/verify', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.valid) {
+                    window.location.href = '/admin.html';
+                }
+            })
+            .catch(() => {});
+        }
+
+        // ============================================================
+        // 9. 初始化状态
+        // ============================================================
+        status.textContent = '📌 请上传您的私钥文件';
+        status.className = 'status';
+    </script>
+
+</body>
+</html>

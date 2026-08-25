@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>加载中...</title>
+    <!-- xterm.js 核心库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <style>
+        /* ============================================================
+               深色/浅色模式 CSS 变量
+               ============================================================ */
+        :root {
+            --bg-body: rgba(255, 255, 255, 0.10);
+            --bg-overlay: rgba(255, 255, 255, 0.10);
+            --bg-card: rgba(255, 255, 255, 0.12);
+            --bg-card-hover: rgba(255, 255, 255, 0.22);
+            --bg-input: rgba(255, 255, 255, 0.08);
+            --bg-tab: transparent;
+            --bg-tab-hover: rgba(255, 255, 255, 0.15);
+            --bg-tab-active: rgba(255, 255, 255, 0.25);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --border-active: rgba(255, 255, 255, 0.35);
+            --text-primary: #1a1a2e;
+            --text-secondary: rgba(0, 0, 0, 0.55);
+            --text-muted: rgba(0, 0, 0, 0.35);
+            --shadow-color: rgba(0, 0, 0, 0.06);
+            --status-published: #27ae60;
+            --status-draft: #d4a017;
+            --status-published-bg: rgba(46, 204, 113, 0.15);
+            --status-draft-bg: rgba(241, 196, 15, 0.15);
+            --danger: #c0392b;
+            --danger-bg: rgba(231, 76, 60, 0.12);
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+            --success: #27ae60;
+            --success-bg: rgba(46, 204, 113, 0.15);
+        }
+
+        [data-theme="dark"] {
+            --bg-body: rgba(20, 22, 36, 0.60);
+            --bg-overlay: rgba(20, 22, 36, 0.70);
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --bg-card-hover: rgba(255, 255, 255, 0.12);
+            --bg-input: rgba(255, 255, 255, 0.06);
+            --bg-tab: transparent;
+            --bg-tab-hover: rgba(255, 255, 255, 0.08);
+            --bg-tab-active: rgba(255, 255, 255, 0.12);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(255, 255, 255, 0.20);
+            --text-primary: #e8e8f0;
+            --text-secondary: rgba(255, 255, 255, 0.60);
+            --text-muted: rgba(255, 255, 255, 0.35);
+            --shadow-color: rgba(0, 0, 0, 0.20);
+            --status-published: #5ddf8a;
+            --status-draft: #f0c040;
+            --status-published-bg: rgba(46, 204, 113, 0.20);
+            --status-draft-bg: rgba(241, 196, 15, 0.20);
+            --danger: #e74c5e;
+            --danger-bg: rgba(231, 76, 60, 0.18);
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            --success: #5ddf8a;
+            --success-bg: rgba(46, 204, 113, 0.20);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.7;
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: scroll;
+            transition: background-color 0.4s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+            color: var(--text-primary);
+            background-color: #1a1a2e;
+        }
+
+        .overlay {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+            min-height: 100vh;
+            background: var(--bg-overlay);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-bottom: none;
+            box-shadow: inset 0 0 80px rgba(255, 255, 255, 0.04), 0 20px 60px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            border-radius: 0;
+            transition: background 0.4s ease, border-color 0.3s ease;
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .admin-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .admin-header .brand small {
+            font-weight: 400;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            padding: 0 12px;
+            border-radius: 30px;
+            backdrop-filter: blur(4px);
+        }
+
+        .admin-header .right-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .admin-header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            background: var(--bg-card);
+            padding: 4px 16px 4px 18px;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--border-color);
+        }
+
+        .admin-header .user-info .logout {
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 2px 10px;
+            border-radius: 30px;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
+        }
+
+        .admin-header .user-info .logout:hover {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border-color: rgba(231, 76, 60, 0.20);
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            padding: 6px 14px;
+            border-radius: 40px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            backdrop-filter: blur(4px);
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-active);
+        }
+
+        /* ===== Tab 导航 ===== */
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2px;
+        }
+
+        .admin-tabs .tab {
+            cursor: pointer;
+            padding: 8px 20px;
+            border-radius: 30px 30px 0 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.25s ease;
+            background: var(--bg-tab);
+            border: 1px solid transparent;
+            border-bottom: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .admin-tabs .tab:hover {
+            background: var(--bg-tab-hover);
+            color: var(--text-primary);
+        }
+
+        .admin-tabs .tab.active {
+            background: var(--bg-tab-active);
+            color: var(--text-primary);
+            font-weight: 600;
+            border-color: var(--border-active);
+            box-shadow: 0 -2px 16px rgba(255, 255, 255, 0.04);
+        }
+
+        .tab-content {
+            animation: fade 0.25s ease;
+        }
+
+        @keyframes fade {
+            from { opacity: 0.3; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* ===== 卡片网格 ===== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 14px;
+            padding: 16px 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            transition: all 0.25s ease;
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-active);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--shadow-color);
+        }
+
+        .card .card-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .card .card-value {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .card .card-value .unit {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        .card .card-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .card .card-status {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 4px;
+            background: var(--status-published-bg);
+            color: var(--status-published);
+        }
+
+        .card .card-status.warn {
+            background: var(--status-draft-bg);
+            color: var(--status-draft);
+        }
+
+        .card .card-status.danger {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        /* ===== 隐藏 CPU 温度和磁盘健康的状态标签 ===== */
+        #cpuTempStatus,
+        #diskHealthStatus {
+            display: none !important;
+        }
+
+        /* ===== 列表卡片 ===== */
+        .list-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(6px);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            transition: all 0.2s;
+            flex-wrap: wrap;
+        }
+
+        .list-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-active);
+        }
+
+        .list-card .info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .list-card .info .title {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .list-card .info .meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .list-card .actions {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .list-card .actions .btn {
+            padding: 3px 12px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            backdrop-filter: blur(4px);
+        }
+
+        .list-card .actions .btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .list-card .actions .btn.danger:hover {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border-color: rgba(231, 76, 60, 0.20);
+        }
+
+        .btn-primary {
+            padding: 6px 20px;
+            border-radius: 40px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-active);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            padding: 6px 20px;
+            border-radius: 40px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* ===== 终端容器 ===== */
+        .terminal-wrapper {
+            background: #0c0c0c;
+            border-radius: 10px;
+            border: 1px solid #2a2a2a;
+            padding: 6px;
+            min-height: 460px;
+            max-height: 580px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #terminal-container {
+            width: 100%;
+            flex: 1;
+            min-height: 400px;
+            max-height: 520px;
+            overflow: hidden;
+        }
+
+        #terminal-container .xterm {
+            padding: 4px 2px;
+            height: 100%;
+        }
+
+        /* xterm 滚动条样式 */
+        .xterm .xterm-viewport::-webkit-scrollbar {
+            width: 4px;
+        }
+        .xterm .xterm-viewport::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+        .xterm .xterm-viewport::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* 终端连接状态提示 */
+        .terminal-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px 6px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: #888;
+            border-bottom: 1px solid #1a1a1a;
+            flex-shrink: 0;
+        }
+        .terminal-status .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+            transition: background 0.3s;
+        }
+        .terminal-status .dot.connected {
+            background: #00ff41;
+        }
+        .terminal-status .dot.connecting {
+            background: #ffaa00;
+        }
+
+        /* ===== 版权 ===== */
+        .copyright-box {
+            background: var(--bg-input);
+            border-radius: 10px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 10px 0;
+        }
+
+        .section-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .section-header .search-box {
+            padding: 5px 14px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            outline: none;
+            width: 160px;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+
+        .section-header .search-box:focus {
+            border-color: var(--border-active);
+            background: var(--bg-card);
+        }
+
+        .count-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 6px;
+        }
+
+        /* ===== 移动端 ===== */
+        @media (max-width: 768px) {
+            .overlay { padding: 16px 12px 30px; }
+            .admin-header .brand { font-size: 1.1rem; }
+            .admin-header .brand small { font-size: 0.7rem; padding: 0 10px; }
+            .admin-header .user-info { font-size: 0.8rem; padding: 3px 12px 3px 14px; }
+            .admin-tabs .tab { font-size: 0.8rem; padding: 6px 14px; }
+            .card-grid { grid-template-columns: 1fr; gap: 10px; }
+            .card .card-value { font-size: 1.4rem; }
+            .list-card { padding: 8px 12px; }
+            .list-card .info .title { font-size: 0.9rem; }
+            .list-card .actions .btn { font-size: 0.65rem; padding: 2px 10px; }
+            .section-header .search-box { width: 120px; font-size: 0.8rem; }
+            .theme-toggle { font-size: 0.8rem; padding: 4px 12px; }
+            .terminal-wrapper { min-height: 340px; max-height: 440px; padding: 4px; }
+            #terminal-container { min-height: 280px; max-height: 380px; }
+            .terminal-status { font-size: 0.6rem; padding: 2px 8px 4px 8px; }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header { flex-direction: column; align-items: stretch; gap: 8px; }
+            .admin-header .right-group { justify-content: space-between; }
+            .admin-tabs .tab { font-size: 0.7rem; padding: 4px 10px; }
+            .admin-tabs { gap: 2px; }
+            .card { padding: 12px 14px; }
+            .list-card { flex-direction: column; align-items: stretch; }
+            .list-card .actions { justify-content: flex-end; }
+            .section-header { flex-direction: column; align-items: stretch; }
+            .section-header .search-box { width: 100%; }
+            .terminal-wrapper { min-height: 280px; max-height: 380px; padding: 4px; }
+            #terminal-container { min-height: 220px; max-height: 320px; }
+            .terminal-status { font-size: 0.55rem; padding: 2px 6px 3px 6px; }
+        }
+
+        @media (max-width: 380px) {
+            .admin-tabs .tab { font-size: 0.65rem; padding: 3px 8px; }
+            .admin-header .user-info .logout { font-size: 0.7rem; padding: 1px 8px; }
+        }
+
+        ::-webkit-scrollbar { width: 4px; background: transparent; }
+        ::-webkit-scrollbar-track { background: var(--bg-input); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+    </style>
+</head>
+<body>
+
+<div class="overlay" id="app">
+
+    <!-- ===== 顶部 ===== -->
+    <div class="admin-header">
+        <div class="brand">
+            🛠️ 服务器管理面板
+        </div>
+        <div class="right-group">
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">🌓 主题</button>
+            <div class="user-info">
+                👤 管理员
+                <span class="logout" id="logoutBtn">退出</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Tab 导航 ===== -->
+    <div class="admin-tabs">
+        <div class="tab active" data-tab="performance">📊 性能监控</div>
+        <div class="tab" data-tab="files">📁 文件管理</div>
+        <div class="tab" data-tab="terminal">🖥️ 终端</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Tab 1: 性能监控 -->
+    <!-- ============================================================ -->
+    <div class="tab-content">
+        <div id="performance" class="tab-pane active">
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">CPU 使用率</div>
+                    <div class="card-value" id="cpuUsage">-- <span class="unit">%</span></div>
+                    <div class="card-desc" id="cpuDetail">加载中...</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">系统已用内存</div>
+                    <div class="card-value" id="systemMemory">-- <span class="unit">%</span></div>
+                    <div class="card-desc" id="systemMemoryDetail">加载中...</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">🌡️ CPU温度</div>
+                    <div class="card-value" id="cpuTemp">-- <span class="unit">°C</span></div>
+                    <!-- 状态标签已隐藏 (CSS) -->
+                    <div class="card-status" id="cpuTempStatus" style="display:none;"></div>
+                    <div class="card-desc" id="cpuTempDetail">更新时间：--</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">硬盘使用率</div>
+                    <div class="card-value" id="diskUsage">-- <span class="unit">%</span></div>
+                    <div class="card-desc" id="diskDetail">加载中...</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">💾 磁盘健康状态</div>
+                    <div class="card-value" id="diskHealth">--</div>
+                    <!-- 状态标签已隐藏 (CSS) -->
+                    <div class="card-status" id="diskHealthStatus" style="display:none;"></div>
+                    <div class="card-desc" id="diskHealthDetail">--</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">网卡使用率</div>
+                    <div class="card-value" id="networkUsage">-- <span class="unit">Mbps</span></div>
+                    <div class="card-desc" id="networkDetail">加载中...</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">⏱️ 服务运行时间</div>
+                    <div class="card-value" id="uptime">--</div>
+                    <div class="card-desc" id="startTime">加载中...</div>
+                </div>
+
+                <!-- ===== 当前时间卡片（替换原最近日志） ===== -->
+                <div class="card" style="grid-column: span 1;">
+                    <div class="card-title">🕒 当前时间</div>
+                    <div class="card-value" id="currentTime">--</div>
+                    <div class="card-desc" id="currentDate">加载中...</div>
+                </div>
+            </div>
+
+            <hr>
+            <div class="copyright-box">
+                © 林鋆成 All Rights Reserved.
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Tab 2: 文件管理 -->
+        <!-- ============================================================ -->
+        <div id="files" class="tab-pane">
+            <div class="section-header">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:1;">
+                    <input type="file" style="display:none;" id="uploadFileInput">
+                    <button class="btn-primary" onclick="document.getElementById('uploadFileInput').click();">📤 上传文件</button>
+                    <button class="btn-secondary" id="goParentBtn" style="font-size:0.75rem;padding:3px 12px;">⬆ 上级目录</button>
+                    <button class="btn-secondary" id="goRootBtn" style="font-size:0.75rem;padding:3px 12px;">🏠 根目录</button>
+                    <span style="font-size:0.75rem;color:var(--text-muted);" id="currentDirDisplay">当前目录: /</span>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                    <input type="text" class="search-box" placeholder="搜索文件..." id="fileSearch" style="width:150px;">
+                </div>
+            </div>
+
+            <div id="fileList">
+                <!-- 由 JS 动态渲染 -->
+            </div>
+            <div class="count-info" id="fileCount">共 0 个文件</div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Tab 3: 终端（xterm.js + WebSocket） -->
+        <!-- ============================================================ -->
+        <div id="terminal" class="tab-pane">
+            <div class="terminal-wrapper">
+                <div class="terminal-status">
+                    <span class="dot connecting" id="terminalDot"></span>
+                    <span id="terminalStatusText">正在连接...</span>
+                </div>
+                <div id="terminal-container"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 引入 xterm.js 核心库和插件 -->
+<!-- ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links/lib/xterm-addon-web-links.js"></script>
+
+<script>
+    // ============================================================
+    // 0. 认证检查
+    // ============================================================
+    (function checkAuth() {
+        var token = localStorage.getItem('admin_token');
+        if (!token) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        fetch('/api/admin/verify', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data.valid) {
+                localStorage.removeItem('admin_token');
+                window.location.href = '/login.html';
+            }
+        })
+        .catch(function() {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/login.html';
+        });
+    })();
+
+    // ============================================================
+    // 1. 加载后台配置（标题 + 背景）
+    // ============================================================
+    async function loadAdminConfig() {
+        try {
+            var token = localStorage.getItem('admin_token');
+            var res = await fetch('/api/admin/config', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            var data = await res.json();
+
+            if (data.background) {
+                document.body.style.backgroundImage = 'url(' + data.background + ')';
+            }
+            if (data.title) {
+                document.title = data.title;
+            }
+            if (data.version) {
+                var brandSmall = document.querySelector('.brand small');
+                if (brandSmall) {
+                    brandSmall.textContent = 'v' + data.version;
+                }
+            }
+        } catch (err) {
+            // 静默失败
+        }
+    }
+    loadAdminConfig();
+
+    // ============================================================
+    // 2. Tab 切换
+    // ============================================================
+    var tabs = document.querySelectorAll('.tab');
+    var panes = {
+        performance: document.getElementById('performance'),
+        files: document.getElementById('files'),
+        terminal: document.getElementById('terminal')
+    };
+
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            var target = this.dataset.tab;
+            Object.keys(panes).forEach(function(key) {
+                panes[key].classList.toggle('active', key === target);
+            });
+            // 切换到终端时调整终端尺寸并聚焦
+            if (target === 'terminal') {
+                setTimeout(function() {
+                    if (window.terminal && window.terminal.fitAddon) {
+                        window.terminal.fitAddon.fit();
+                        window.terminal.term.focus();
+                    }
+                }, 200);
+            }
+        });
+    });
+
+    // ============================================================
+    // 3. 主题切换
+    // ============================================================
+    var themeToggle = document.getElementById('themeToggle');
+    var currentTheme = 'light';
+
+    themeToggle.addEventListener('click', function() {
+        var html = document.documentElement;
+        if (currentTheme === 'light') {
+            html.setAttribute('data-theme', 'dark');
+            currentTheme = 'dark';
+            this.textContent = '暗色';
+        } else {
+            html.setAttribute('data-theme', 'light');
+            currentTheme = 'light';
+            this.textContent = '亮色';
+        }
+        // 切换主题后调整终端颜色（通过 xterm 主题）
+        if (window.terminal && window.terminal.term) {
+            var isDark = currentTheme === 'dark';
+            window.terminal.term.options.theme = {
+                background: isDark ? '#1a1a2e' : '#0c0c0c',
+                foreground: '#c0c0c0',
+                cursor: '#00ff41',
+                black: '#0c0c0c',
+                red: '#ff4444',
+                green: '#00ff41',
+                yellow: '#ffaa00',
+                blue: '#4488ff',
+                magenta: '#aa66ff',
+                cyan: '#00dddd',
+                white: '#c0c0c0',
+                brightBlack: '#444444',
+                brightRed: '#ff6666',
+                brightGreen: '#66ff88',
+                brightYellow: '#ffcc44',
+                brightBlue: '#66aaff',
+                brightMagenta: '#cc88ff',
+                brightCyan: '#44eeee',
+                brightWhite: '#ffffff'
+            };
+        }
+    });
+
+    // ============================================================
+    // 4. 获取 Token
+    // ============================================================
+    function getToken() {
+        return localStorage.getItem('admin_token');
+    }
+
+    // ============================================================
+    // 5. 文件管理
+    // ============================================================
+    var fileListEl = document.getElementById('fileList');
+    var fileCountEl = document.getElementById('fileCount');
+    var currentDirDisplay = document.getElementById('currentDirDisplay');
+    var files = [];
+    var currentPath = '/';
+    var parentPath = null;
+
+    async function loadFiles(path, filter) {
+        if (typeof path === 'undefined') path = '/';
+        if (typeof filter === 'undefined') filter = '';
+        try {
+            var token = getToken();
+            var url = '/api/admin/files?path=' + encodeURIComponent(path);
+            var res = await fetch(url, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            var data = await res.json();
+
+            files = Array.isArray(data.files) ? data.files : [];
+            currentPath = data.currentPath || path;
+            parentPath = data.parentPath || null;
+
+            currentDirDisplay.textContent = '当前目录: ' + currentPath;
+
+            renderFiles(filter);
+        } catch (err) {
+            console.error('加载文件列表失败:', err);
+            fileListEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">❌ 加载文件失败</div>';
+            fileCountEl.textContent = '共 0 个文件';
+        }
+    }
+
+    function renderFiles(filter) {
+        if (typeof filter === 'undefined') filter = '';
+        var fileArray = Array.isArray(files) ? files : [];
+        var filtered = fileArray;
+        if (filter) {
+            filtered = fileArray.filter(function(f) {
+                return f.name && f.name.toLowerCase().indexOf(filter.toLowerCase()) !== -1;
+            });
+        }
+
+        if (filtered.length === 0) {
+            fileListEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">📭 此目录为空</div>';
+            fileCountEl.textContent = '共 0 个文件';
+            return;
+        }
+
+        var html = '';
+        for (var i = 0; i < filtered.length; i++) {
+            var f = filtered[i];
+            var isDir = f.isDir === true;
+            var icon = isDir ? '📁' : '📄';
+            var isDirStyle = isDir ? 'border-left:3px solid var(--status-draft);' : '';
+            var clickable = isDir ? 'cursor:pointer;' : '';
+            var fileSize = (typeof f.size === 'number' && !isDir) ? (f.size / 1024).toFixed(1) + ' KB' : '--';
+            var modified = f.modified || '--';
+            var safePath = (f.path || '').replace(/"/g, '&quot;');
+            var fileName = f.name || '未命名';
+
+            html += '<div class="list-card" style="' + isDirStyle + '">' +
+                '<div class="info">' +
+                    '<span class="title" style="' + clickable + '" data-action="' + (isDir ? 'open-dir' : '') + '" data-path="' + safePath + '">' +
+                        icon + ' ' + fileName +
+                    '</span>' +
+                    '<span class="meta">' + fileSize + ' · ' + modified + '</span>' +
+                '</div>' +
+                '<div class="actions">' +
+                    (!isDir ? '<button class="btn" data-action="download-file" data-path="' + safePath + '">📥 下载</button>' : '') +
+                    '<button class="btn danger" data-action="delete-file" data-path="' + safePath + '">🗑️ 删除</button>' +
+                '</div>' +
+            '</div>';
+        }
+        fileListEl.innerHTML = html;
+
+        var openDirEls = fileListEl.querySelectorAll('[data-action="open-dir"]');
+        for (var j = 0; j < openDirEls.length; j++) {
+            openDirEls[j].addEventListener('click', function() {
+                var path = this.dataset.path;
+                if (path) {
+                    var searchVal = document.getElementById('fileSearch').value;
+                    loadFiles(path, searchVal);
+                }
+            });
+        }
+
+        var downloadBtns = fileListEl.querySelectorAll('[data-action="download-file"]');
+        for (var k = 0; k < downloadBtns.length; k++) {
+            downloadBtns[k].addEventListener('click', function() {
+                var path = this.dataset.path;
+                downloadFile(path);
+            });
+        }
+
+        var deleteBtns = fileListEl.querySelectorAll('[data-action="delete-file"]');
+        for (var l = 0; l < deleteBtns.length; l++) {
+            deleteBtns[l].addEventListener('click', function() {
+                var path = this.dataset.path;
+                deleteFile(path);
+            });
+        }
+
+        fileCountEl.textContent = '共 ' + filtered.length + ' 个文件';
+    }
+
+    document.getElementById('goParentBtn').addEventListener('click', function() {
+        if (parentPath) {
+            var searchVal = document.getElementById('fileSearch').value;
+            loadFiles(parentPath, searchVal);
+        } else {
+            alert('已在根目录');
+        }
+    });
+
+    document.getElementById('goRootBtn').addEventListener('click', function() {
+        var searchVal = document.getElementById('fileSearch').value;
+        loadFiles('/', searchVal);
+    });
+
+    async function downloadFile(path) {
+        if (!path) {
+            alert('❌ 无效的文件路径');
+            return;
+        }
+        try {
+            var token = getToken();
+            var res = await fetch('/api/admin/files/download?path=' + encodeURIComponent(path), {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) {
+                throw new Error('下载失败 (HTTP ' + res.status + ')');
+            }
+            var blob = await res.blob();
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            var parts = path.split(/[\/\\]/);
+            a.download = parts[parts.length - 1] || 'download';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            alert('❌ 下载失败: ' + err.message);
+        }
+    }
+
+    async function deleteFile(path) {
+        if (!path) {
+            alert('❌ 无效的文件路径');
+            return;
+        }
+        if (!confirm('确认删除 "' + path + '" 吗？此操作不可恢复！')) return;
+        try {
+            var token = getToken();
+            var res = await fetch('/api/admin/files?path=' + encodeURIComponent(path), {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            var result = await res.json();
+            if (result.success) {
+                var searchVal = document.getElementById('fileSearch').value;
+                loadFiles(currentPath, searchVal);
+            } else {
+                alert('❌ 删除失败: ' + (result.error || result.message || '未知错误'));
+            }
+        } catch (err) {
+            alert('❌ 删除失败: ' + err.message);
+        }
+    }
+
+    document.getElementById('uploadFileInput').addEventListener('change', async function(e) {
+        if (this.files.length === 0) return;
+        var file = this.files[0];
+        try {
+            var token = getToken();
+            var formData = new FormData();
+            formData.append('file', file);
+            var res = await fetch('/api/admin/files/upload?path=' + encodeURIComponent(currentPath), {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+            var result = await res.json();
+            if (result.success) {
+                var searchVal = document.getElementById('fileSearch').value;
+                loadFiles(currentPath, searchVal);
+            } else {
+                alert('❌ 上传失败: ' + (result.message || '未知错误'));
+            }
+        } catch (err) {
+            alert('❌ 上传失败: ' + err.message);
+        }
+        this.value = '';
+    });
+
+    document.getElementById('fileSearch').addEventListener('input', function() {
+        renderFiles(this.value);
+    });
+
+    loadFiles('/', '');
+
+    // ============================================================
+    // 6. 终端（xterm.js + WebSocket 完整交互式终端）
+    // ============================================================
+    var terminalInitialized = false;
+    var terminalDot = document.getElementById('terminalDot');
+    var terminalStatusText = document.getElementById('terminalStatusText');
+
+    function updateTerminalStatus(state, text) {
+        terminalDot.className = 'dot ' + state;
+        terminalStatusText.textContent = text;
+    }
+
+    function initTerminal() {
+        if (terminalInitialized) return;
+        terminalInitialized = true;
+
+        var token = localStorage.getItem('admin_token');
+        if (!token) {
+            updateTerminalStatus('', '未登录，无法连接终端');
+            return;
+        }
+
+        var container = document.getElementById('terminal-container');
+        if (!container) {
+            updateTerminalStatus('', '容器未就绪');
+            return;
+        }
+
+        updateTerminalStatus('connecting', '正在连接...');
+
+        // 创建 xterm 实例
+        var FitAddon = window.FitAddon.FitAddon;
+        var WebLinksAddon = window.WebLinksAddon.WebLinksAddon;
+
+        var fitAddon = new FitAddon();
+
+        var term = new Terminal({
+            cursorBlink: true,
+            cursorStyle: 'block',
+            theme: {
+                background: '#0c0c0c',
+                foreground: '#c0c0c0',
+                cursor: '#00ff41',
+                black: '#0c0c0c',
+                red: '#ff4444',
+                green: '#00ff41',
+                yellow: '#ffaa00',
+                blue: '#4488ff',
+                magenta: '#aa66ff',
+                cyan: '#00dddd',
+                white: '#c0c0c0',
+                brightBlack: '#444444',
+                brightRed: '#ff6666',
+                brightGreen: '#66ff88',
+                brightYellow: '#ffcc44',
+                brightBlue: '#66aaff',
+                brightMagenta: '#cc88ff',
+                brightCyan: '#44eeee',
+                brightWhite: '#ffffff'
+            },
+            fontSize: 14,
+            fontFamily: 'Courier New, monospace, "PingFang SC"',
+            scrollback: 2000,
+            convertEol: true,
+            allowTransparency: false,
+            disableStdin: false,
+            tabStopWidth: 4
+        });
+
+        term.loadAddon(fitAddon);
+        if (WebLinksAddon) {
+            term.loadAddon(new WebLinksAddon());
+        }
+
+        term.open(container);
+
+        // 适配尺寸
+        setTimeout(function() {
+            fitAddon.fit();
+        }, 100);
+        setTimeout(function() {
+            fitAddon.fit();
+        }, 500);
+        setTimeout(function() {
+            fitAddon.fit();
+        }, 1000);
+
+        // 窗口大小变化时调整
+        var resizeHandler = function() {
+            if (window.terminal && window.terminal.fitAddon) {
+                window.terminal.fitAddon.fit();
+            }
+        };
+        window.addEventListener('resize', resizeHandler);
+
+        // 切换到终端 Tab 时调整
+        var terminalTab = document.querySelector('[data-tab="terminal"]');
+        if (terminalTab) {
+            terminalTab.addEventListener('click', function() {
+                setTimeout(function() {
+                    if (window.terminal && window.terminal.fitAddon) {
+                        window.terminal.fitAddon.fit();
+                        window.terminal.term.focus();
+                    }
+                }, 200);
+            });
+        }
+
+        // WebSocket 连接
+        var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        var wsUrl = protocol + '//' + window.location.host + '/terminal/ws?token=' + encodeURIComponent(token);
+        var socket = new WebSocket(wsUrl);
+
+        socket.onopen = function() {
+            updateTerminalStatus('connected', '已连接');
+            term.focus();
+        };
+
+        socket.onmessage = function(event) {
+            term.write(event.data);
+        };
+
+        socket.onerror = function(err) {
+            updateTerminalStatus('', 'WebSocket 错误');
+            term.writeln('\x1b[31m● WebSocket 错误: ' + (err.message || '未知错误') + '\x1b[0m');
+        };
+
+        socket.onclose = function() {
+            updateTerminalStatus('', '已断开 (刷新页面重连)');
+            term.writeln('\x1b[33m● 终端连接已断开，刷新页面重新连接\x1b[0m');
+        };
+
+        // 用户输入 -> WebSocket
+        term.onData(function(data) {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(data);
+            } else {
+                term.writeln('\x1b[33m● 连接已断开，请刷新页面\x1b[0m');
+            }
+        });
+
+        // 终端大小变化时通知服务端（PTY 自动调整）
+        term.onResize(function(size) {
+            // node-pty 自动适配，无需额外操作
+        });
+
+        // 保存引用
+        window.terminal = {
+            term: term,
+            socket: socket,
+            fitAddon: fitAddon,
+            resizeHandler: resizeHandler
+        };
+
+        // 如果终端 Tab 当前是激活的，立即聚焦
+        var activeTab = document.querySelector('.tab.active');
+        if (activeTab && activeTab.dataset.tab === 'terminal') {
+            setTimeout(function() {
+                term.focus();
+            }, 300);
+        }
+    }
+
+    // ============================================================
+    // 7. 页面加载完成后初始化终端
+    // ============================================================
+    if (document.readyState === 'complete') {
+        setTimeout(initTerminal, 300);
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initTerminal, 300);
+        });
+    }
+
+    // 如果切换到终端 Tab 时还没初始化，立即初始化
+    var terminalTabCheck = document.querySelector('[data-tab="terminal"]');
+    if (terminalTabCheck) {
+        terminalTabCheck.addEventListener('click', function() {
+            if (!terminalInitialized) {
+                setTimeout(initTerminal, 100);
+            } else {
+                setTimeout(function() {
+                    if (window.terminal && window.terminal.fitAddon) {
+                        window.terminal.fitAddon.fit();
+                        window.terminal.term.focus();
+                    }
+                }, 150);
+            }
+        });
+    }
+
+    // ============================================================
+    // 8. 加载性能监控数据（不含日志）
+    // ============================================================
+    async function loadPerformance() {
+        try {
+            var token = getToken();
+            var res = await fetch('/api/admin/status', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            var data = await res.json();
+
+            if (data.cpu) {
+                document.getElementById('cpuUsage').innerHTML = data.cpu.usage + ' <span class="unit">%</span>';
+                document.getElementById('cpuDetail').textContent = '负载: ' + data.cpu.loadavg.join(', ');
+            }
+
+            if (data.systemMemory) {
+                document.getElementById('systemMemory').innerHTML = data.systemMemory.usedPercent + ' <span class="unit">%</span>';
+                document.getElementById('systemMemoryDetail').textContent =
+                    '已用 ' + data.systemMemory.usedGB + 'GB / 总 ' + data.systemMemory.totalGB + 'GB';
+            }
+
+            if (data.cpuTemp) {
+                document.getElementById('cpuTemp').innerHTML = data.cpuTemp.temp + ' <span class="unit">°C</span>';
+                document.getElementById('cpuTempDetail').textContent = '更新于 ' + (data.cpuTemp.updated || '--');
+            }
+
+            if (data.disk) {
+                document.getElementById('diskUsage').innerHTML = data.disk.usedPercent + ' <span class="unit">%</span>';
+                document.getElementById('diskDetail').textContent =
+                    '已用 ' + data.disk.usedGB + 'GB / 总 ' + data.disk.totalGB + 'GB';
+            }
+
+            if (data.diskHealth) {
+                document.getElementById('diskHealth').textContent = data.diskHealth.health || '未知';
+                var detail = '已用 ' + (data.diskHealth.usedGB || '--') + 'GB / 总 ' + (data.diskHealth.totalGB || '--') + 'GB';
+                document.getElementById('diskHealthDetail').textContent = detail;
+            }
+
+            if (data.network) {
+                var speed = data.network.speed || 0;
+                document.getElementById('networkUsage').innerHTML = speed.toFixed(1) + ' <span class="unit">Mbps</span>';
+                document.getElementById('networkDetail').textContent =
+                    '上行 ' + (data.network.tx || 0).toFixed(1) + ' Mbps · 下行 ' + (data.network.rx || 0).toFixed(1) + ' Mbps';
+            }
+
+            if (data.uptime) {
+                document.getElementById('uptime').textContent = data.uptime.human || '--';
+                document.getElementById('startTime').textContent = '上次启动: ' + (data.uptime.started || '--');
+            }
+        } catch (err) {
+            console.error('加载性能数据失败:', err);
+        }
+    }
+
+    loadPerformance();
+    setInterval(loadPerformance, 30000);
+
+    // ============================================================
+    // 9. 更新当前时间（每秒刷新）
+    // ============================================================
+    function updateCurrentTime() {
+    var now = new Date();
+    var hours = String(now.getHours()).padStart(2, '0');
+    var minutes = String(now.getMinutes()).padStart(2, '0');
+    var timeStr = hours + ':' + minutes;
+
+    var year = now.getFullYear();
+    var month = now.getMonth() + 1;
+    var day = now.getDate();
+    var dateStr = year + '年' + month + '月' + day + '日';
+
+    document.getElementById('currentTime').textContent = timeStr;
+    document.getElementById('currentDate').textContent = dateStr;
+}
+
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 1000);
+
+    // ============================================================
+    // 10. 退出登录
+    // ============================================================
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        if (confirm('确认退出登录吗？')) {
+            // 关闭 WebSocket 连接
+            if (window.terminal && window.terminal.socket) {
+                try {
+                    window.terminal.socket.close();
+                } catch (e) {}
+            }
+            localStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+
+</body>
+</html>
