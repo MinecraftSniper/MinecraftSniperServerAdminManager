@@ -1,0 +1,39 @@
+/
+│
+├── adminserver.js                # 核心后端服务
+│                                  # API、WebSocket、终端、文件管理
+│
+├── server.js                     # 服务入口
+│                                  # 加载并启动 adminserver.js
+│
+├── adminconfig.json              # 运行时配置文件
+│                                  # 端口、HTTPS、标题、背景等
+│
+├── admin.pub                     # RSA 公钥文件
+│                                  # 首次启动自动生成，用于私钥登录验证
+│
+├── package.json                  # 项目依赖声明
+│
+├── pnpm-lock.yaml                # 依赖版本锁定文件
+│
+├── pnpm-workspace.yaml           # pnpm 工作区配置
+│                                  # 允许 node-pty 构建脚本运行
+│
+├── README.md                     # 项目说明文档
+│
+├── install.sh                    # Linux 一键安装脚本
+│
+├── uninstall.sh                  # Linux 一键卸载脚本
+│
+├── public/                       # 前端静态资源目录
+│   ├── admin.html                # 管理面板主界面
+│   ├── login.html                # 管理员登录页面
+│
+│
+│
+├── image/                        # 背景图目录
+│   └── Minecraft.png             # 背景图（与 public/image 同步）
+│
+├── sslkey/                       # HTTPS 证书目录（可选）
+│   ├── MinecraftSniper.key       # 私钥文件
+│   └── MinecraftSniper.crt       # 证书文件
