@@ -57,5 +57,5 @@ HTTPS 证书怎么配置？
 ---
 ## 版权信息
 
-© 2026 林鋆成 All Rights Reserved.
+© 林鋆成 All Rights Reserved.
 
