@@ -1,0 +1,14 @@
+{
+  "background": "/image/Minecraft.png",
+  "title": "MinecraftSniper服务器管理面板",
+  "adminPort": 8553,
+  "https": {
+    "enabled": "auto",
+    "keyPath": "sslkey/MinecraftSniper.key",
+    "certPath": "sslkey/MinecraftSniper.crt"
+  },
+  "session": {
+    "timeout": 604800
+  },
+  "version": "MinecraftSniper ServerAdmin Manager EOL"
+}
