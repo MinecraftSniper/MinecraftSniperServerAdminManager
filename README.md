@@ -36,7 +36,7 @@
 
 - **Node.js**：v20 或更高版本
 - **包管理器**：pnpm（推荐）
-- **操作系统**：Linux / Windows / macOS（终端功能在 Linux 下体验最佳）
+- **操作系统**：Linux / Windows / macOS（Linux 下体验最佳）
 
 > ⚠️ 请务必注意以下安全事项：
 
